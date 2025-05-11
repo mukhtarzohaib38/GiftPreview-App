@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback,useEffect } from "react";
 import {
   Page,
   Layout,
@@ -21,10 +21,12 @@ import {
   
 } from "@shopify/polaris";
 import { EyeCheckMarkIcon, QuestionCircleIcon, PlusCircleIcon, CollectionIcon } from '@shopify/polaris-icons';
-
+import { useAppBridge } from '@shopify/app-bridge-react';
+import { ResourcePicker } from '@shopify/app-bridge/actions';
 export default function Index() {
   const [textFieldValue, setTextFieldValue] = useState("Gift");
   const [selected, setSelected] = useState(["All Products"]);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [giftName, setGiftName] = useState("Example Gift");
   const [subtitle, setSubtitle] = useState("100% Natural");
   const [badge, setBadge] = useState("ONLY TODAY");
@@ -73,6 +75,80 @@ export default function Index() {
     borderRadius: '4px',
     marginRight: '10px',
   });
+
+  //app  brige work
+ // App bridge work
+ const [app, setApp] = useState(null);
+ useEffect(() => {
+   // Only access window here (client-side only)
+   const params = new URLSearchParams(window.location.search);
+   const host = params.get('host');
+   const shopOrigin = 'demo-hydrogentheme.myshopify.com';
+
+   if (host && shopOrigin) {
+     import('@shopify/app-bridge').then(({ createApp }) => {
+       const appInstance = createApp({
+         apiKey: '2d45e8ab42260cbb284547fe8f89fd06',
+         host,
+         shopOrigin,
+       });
+       setApp(appInstance);
+     });
+   }
+ }, []);
+ 
+ const openResourcePicker = (type) => {
+  if (!app) return; // Ensure app is initialized
+
+  const resourcePicker = ResourcePicker.create(app, {
+    resourceType: type === 'product' ? ResourcePicker.ResourceType.Product : ResourcePicker.ResourceType.Collection,
+    options: {
+      selectMultiple: false,  // Ensure only one product or collection can be selected
+      showVariants: false,    // Disable variants if not needed
+    },
+  });
+
+  resourcePicker.subscribe(ResourcePicker.Action.SELECT, (payload) => {
+    const selectedItem = payload.selection[0]; // Get the first selected item
+    handleSelection(selectedItem);
+  });
+
+  resourcePicker.subscribe(ResourcePicker.Action.CANCEL, () => {
+    resourcePicker.disconnect();
+  });
+
+  resourcePicker.dispatch(ResourcePicker.Action.OPEN);
+};
+
+const handleSelection = (selectedItem) => {
+  // Assuming you want to store selected product or collection data
+  setSelectedItem(selectedItem);  // Update the state with the selected item
+};
+
+
+ useEffect(() => {
+  if (selected[0] === "Specific Products") {
+    openResourcePicker('product'); // Automatically open the product picker when "Specific Products" is selected
+  } else if (selected[0] === "Specific Collections") {
+    openResourcePicker('collection'); // Automatically open the collection picker when "Specific Collections" is selected
+  }
+}, [selected])
+//
+
+const [borderWidth, setBorderWidth] = useState(0);
+  const [borderRadius, setBorderRadius] = useState(0);
+  const [borderSpacing, setBorderSpacing] = useState(0);
+  const [borderDashOffset, setBorderDashOffset] = useState(0);
+  const [imageSize, setImageSize] = useState(0);
+  const [imageRadius, setImageRadius] = useState(0);
+
+  // Handle changes for each slider independently
+  const handleBorderWidthChange = (value) => setBorderWidth(value);
+  const handleBorderRadiusChange = (value) => setBorderRadius(value);
+  const handleBorderSpacingChange = (value) => setBorderSpacing(value);
+  const handleBorderDashOffsetChange = (value) => setBorderDashOffset(value);
+  const handleImageSizeChange = (value) => setImageSize(value);
+  const handleImageRadiusChange = (value) => setImageRadius(value);
   return (
 
     <Page>
@@ -116,15 +192,15 @@ export default function Index() {
      </div>
    <Divider />
    <ChoiceList
-     title="Product or Collection Selection:"
-     choices={[
-       { label: "All Products", value: "All Products" },
-       { label: "Specific Products", value: "Specific Products" },
-       { label: "Specific Collections", value: "Specific Collections" },
-     ]}
-     selected={selected}
-     onChange={handleChoiceListChange}
-   />
+        title="Product or Collection Selection:"
+        choices={[
+          { label: "All Products", value: "All Products" },
+          { label: "Specific Products", value: "Specific Products" },
+          { label: "Specific Collections", value: "Specific Collections" },
+        ]}
+        selected={selected}
+        onChange={handleChoiceListChange}
+      />
  </BlockStack>
 </Card>
     <div style={{marginTop:'10px'}}></div>
@@ -460,60 +536,62 @@ export default function Index() {
    </div>
          </BlockStack>
          <RangeSlider
-       output
-       label="Border Width"
-       min={-4}
-       max={8}
-       value={rangeValue}
-       onChange={handleRangeSliderChange}
-     />
-       <RangeSlider
-       output
-       label="Border Radius"
-       min={-5}
-       max={11}
-       value={rangeValue}
-       onChange={handleRangeSliderChange}
-     />
-       <RangeSlider
-       output
-       label="Border Spacing"
-       min={-30}
-       max={4}
-       value={rangeValue}
-       onChange={handleRangeSliderChange}
-     />
-       <RangeSlider
-       output
-       label="Border DashOffset"
-       min={-11}
-       max={2}
-       value={rangeValue}
-       onChange={handleRangeSliderChange}
-     />
-        <Divider/>
-        <Text variant="headingLg" as="h5">
-     Image Setting
-     </Text>
-     <RangeSlider
-       output
-       label="Image size"
-       min={-10}
-       max={5}
-       value={rangeValue}
-       onChange={handleRangeSliderChange}
-     />
+        output
+        label="Border Width"
+        min={-4}
+        max={8}
+        value={borderWidth}
+        onChange={handleBorderWidthChange}
+      />
       <RangeSlider
-       output
-       label="Image Radius"
-       min={-10}
-       max={10}
-       value={rangeValue}
-       onChange={handleRangeSliderChange}
-     />
+        output
+        label="Border Radius"
+        min={-5}
+        max={11}
+        value={borderRadius}
+        onChange={handleBorderRadiusChange}
+      />
+      <RangeSlider
+        output
+        label="Border Spacing"
+        min={-30}
+        max={4}
+        value={borderSpacing}
+        onChange={handleBorderSpacingChange}
+      />
+      <RangeSlider
+        output
+        label="Border DashOffset"
+        min={-11}
+        max={2}
+        value={borderDashOffset}
+        onChange={handleBorderDashOffsetChange}
+      />
+
+      <Divider />
+
+      <Text variant="headingLg" as="h5">
+        Image Setting
+      </Text>
+      <RangeSlider
+        output
+        label="Image Size"
+        min={-10}
+        max={5}
+        value={imageSize}
+        onChange={handleImageSizeChange}
+      />
+      <RangeSlider
+        output
+        label="Image Radius"
+        min={-10}
+        max={10}
+        value={imageRadius}
+        onChange={handleImageRadiusChange}
+      />
        </Card>
 
-       
+        <Button variant="primary">Save </Button>
       
 
       
@@ -523,19 +601,46 @@ export default function Index() {
   </div>
 
   {/* Right Preview Section */}
-  <div style={{ flex: 1, maxWidth: '500px' }}>
-    <Card>
-      <Text variant="headingSm">Preview</Text>
-     
-      <div style={{ backgroundColor: 'lightgray', padding: '20px', borderRadius: '8px' }}>
-        <Text>Name: {giftName}</Text>
-        <Text>Subtitle: {subtitle}</Text>
-        <Text>Price: {priceText}</Text>
-      
-      </div>
-    </Card>
-  </div>
+  <div style={{ flex: 1.5, maxWidth: '500px' }}>
+  <Card>
+    <Text variant="headingSm">Preview</Text>
+    <div style={{ backgroundColor: 'lightgray', padding: '20px', borderRadius: '8px' }}>
+      {selectedItem ? (
+        <>
+          {/* Smaller Image */}
+          <img
+            src={'https://cdn.shopify.com/s/files/1/0868/9991/7135/files/1.png?v=1730903332'}
+            alt={selectedItem.title || "Product Image"}
+            style={{
+              width: '100%',
+              maxHeight: '200px',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              marginBottom: '16px',
+            }}
+          />
+
+          {/* Product Name */}
+          <Text>Name: {selectedItem.title || "Product Name"}</Text>
+
+          {/* Price */}
+          <Text>Price: {selectedItem.variants ? selectedItem.variants[0].price : "N/A"}</Text>
+
+          {/* Add to Cart Button */}
+          <Button variant="primary" fullWidth style={{ marginTop: '20px' }}>
+            Add to Cart
+          </Button>
+        </>
+      ) : (
+        <Text>Choose a product or collection to see the preview</Text>
+      )}
+    </div>
+  </Card>
 </div>
+
+
+
+      </div>
 
 
       

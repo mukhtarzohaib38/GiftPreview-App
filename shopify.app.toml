@@ -3,7 +3,7 @@
 client_id = "2d45e8ab42260cbb284547fe8f89fd06"
 name = "remixapp"
 handle = "remixapp-34"
-application_url = "https://subsequently-rss-specifically-pittsburgh.trycloudflare.com"
+application_url = "https://word-americas-cuba-rug.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://subsequently-rss-specifically-pittsburgh.trycloudflare.com/auth/callback",
-  "https://subsequently-rss-specifically-pittsburgh.trycloudflare.com/auth/shopify/callback",
-  "https://subsequently-rss-specifically-pittsburgh.trycloudflare.com/api/auth/callback"
+  "https://word-americas-cuba-rug.trycloudflare.com/auth/callback",
+  "https://word-americas-cuba-rug.trycloudflare.com/auth/shopify/callback",
+  "https://word-americas-cuba-rug.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
